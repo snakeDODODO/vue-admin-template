@@ -36,7 +36,13 @@ module.exports = {
       warnings: false,
       errors: true
     },
-    before: require('./mock/mock-server.js')
+    proxy: {
+      '/': {
+        target: 'http://gmall-h5-api.atguigu.cn',
+        pathRewrite: { '^/': '' },
+      },
+    },
+    // 开启mock数据
   },
   configureWebpack: {
     // provide the app's title in webpack's name field, so that

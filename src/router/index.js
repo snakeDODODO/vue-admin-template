@@ -34,143 +34,137 @@ export const constantRoutes = [
   {
     path: '/login',
     component: () => import('@/views/login/index'),
-    hidden: true
+    hidden: true,
   },
 
   {
     path: '/404',
     component: () => import('@/views/404'),
-    hidden: true
+    hidden: true,
   },
 
   {
     path: '/',
     component: Layout,
     redirect: '/dashboard',
-    children: [{
-      path: 'dashboard',
-      name: 'Dashboard',
-      component: () => import('@/views/dashboard/index'),
-      meta: { title: 'Dashboard', icon: 'dashboard' }
-    }]
-  },
-
-  {
-    path: '/example',
-    component: Layout,
-    redirect: '/example/table',
-    name: 'Example',
-    meta: { title: 'Example', icon: 'el-icon-s-help' },
     children: [
       {
-        path: 'table',
-        name: 'Table',
-        component: () => import('@/views/table/index'),
-        meta: { title: 'Table', icon: 'table' }
+        path: 'dashboard',
+        name: 'Dashboard',
+        component: () => import('@/views/dashboard/index'),
+        meta: { title: '首页', icon: 'dashboard' },
       },
-      {
-        path: 'tree',
-        name: 'Tree',
-        component: () => import('@/views/tree/index'),
-        meta: { title: 'Tree', icon: 'tree' }
-      }
-    ]
+    ],
   },
-
-  {
-    path: '/form',
-    component: Layout,
-    children: [
-      {
-        path: 'index',
-        name: 'Form',
-        component: () => import('@/views/form/index'),
-        meta: { title: 'Form', icon: 'form' }
-      }
-    ]
-  },
-
-  {
-    path: '/nested',
-    component: Layout,
-    redirect: '/nested/menu1',
-    name: 'Nested',
-    meta: {
-      title: 'Nested',
-      icon: 'nested'
-    },
-    children: [
-      {
-        path: 'menu1',
-        component: () => import('@/views/nested/menu1/index'), // Parent router-view
-        name: 'Menu1',
-        meta: { title: 'Menu1' },
-        children: [
-          {
-            path: 'menu1-1',
-            component: () => import('@/views/nested/menu1/menu1-1'),
-            name: 'Menu1-1',
-            meta: { title: 'Menu1-1' }
-          },
-          {
-            path: 'menu1-2',
-            component: () => import('@/views/nested/menu1/menu1-2'),
-            name: 'Menu1-2',
-            meta: { title: 'Menu1-2' },
-            children: [
-              {
-                path: 'menu1-2-1',
-                component: () => import('@/views/nested/menu1/menu1-2/menu1-2-1'),
-                name: 'Menu1-2-1',
-                meta: { title: 'Menu1-2-1' }
-              },
-              {
-                path: 'menu1-2-2',
-                component: () => import('@/views/nested/menu1/menu1-2/menu1-2-2'),
-                name: 'Menu1-2-2',
-                meta: { title: 'Menu1-2-2' }
-              }
-            ]
-          },
-          {
-            path: 'menu1-3',
-            component: () => import('@/views/nested/menu1/menu1-3'),
-            name: 'Menu1-3',
-            meta: { title: 'Menu1-3' }
-          }
-        ]
-      },
-      {
-        path: 'menu2',
-        component: () => import('@/views/nested/menu2/index'),
-        name: 'Menu2',
-        meta: { title: 'menu2' }
-      }
-    ]
-  },
-
-  {
-    path: 'external-link',
-    component: Layout,
-    children: [
-      {
-        path: 'https://panjiachen.github.io/vue-element-admin-site/#/',
-        meta: { title: 'External Link', icon: 'link' }
-      }
-    ]
-  },
-
   // 404 page must be placed at the end !!!
-  { path: '*', redirect: '/404', hidden: true }
+  { path: '*', redirect: '/404', hidden: true },
+]
+// 异步路由：不同的用户（角色），需要过滤筛选出的路由，称之为异步路由
+export const asyncRoutes = [{
+  path: '/acl',
+  component: Layout,
+  name: 'Acl',
+  meta: { title: '权限管理', icon: 'el-icon-lock' },
+  children: [
+    {
+      path: '/User',
+      component: () => import('@/views/acl/user'),
+      name: 'User',
+      meta: { title: '用户管理'},
+    },
+    {
+      path: '/role',
+      component: () => import('@/views/acl/role'),
+      name: 'Role',
+      meta: { title: '角色管理'},
+    },
+    {
+      name: 'RoleAuth',
+      path: 'role/auth/:id',
+      component: () => import('@/views/acl/role/roleAuth'),
+      meta: {
+        activeMenu: '/role',
+        activeMenu: '/role',
+      },
+      hidden: true,
+    },
+    {
+      path: '/permission',
+      component: () => import('@/views/acl/permission'),
+      name: 'Permission',
+      meta: { title: '菜单管理'},
+    },
+  ],
+},
+{
+  path: '/product',
+  component: Layout,
+  name: 'Product',
+  meta: { title: '商品管理', icon: 'el-icon-goods' },
+  children: [
+    {
+      path: '/trademark',
+      component: () => import('@/views/product/tradeMark'),
+      name: 'Trademark',
+      meta: { title: '品牌管理'},
+    },
+    {
+      path: '/attr',
+      component: () => import('@/views/product/Attr'),
+      name: 'Attr',
+      meta: { title: '平台属性管理'},
+    },
+    {
+      path: '/spu',
+      component: () => import('@/views/product/Spu'),
+      name: 'Spu',
+      meta: { title: 'Spu管理'},
+    },
+    {
+      path: '/sku',
+      component: () => import('@/views/product/Sku'),
+      name: 'Sku',
+      meta: { title: 'Sku管理'},
+    },
+  ],
+},
+{
+  path: '/test',
+  component: Layout,
+  name: 'Test',
+  meta: { title: '测试管理', icon: 'el-icon-goods' },
+  children: [
+    {
+      path: '/test1',
+      component: () => import('@/views/Test/Test1'),
+      name: 'Test1',
+      meta: { title: '测试管理1'},
+    },
+    {
+      path: '/test2',
+      component: () => import('@/views/Test/Test2'),
+      name: 'Test2',
+      meta: { title: '测试管理2'},
+    },
+  ],
+},
 ]
 
-const createRouter = () => new Router({
-  // mode: 'history', // require service support
-  scrollBehavior: () => ({ y: 0 }),
-  routes: constantRoutes
-})
+// 任意路由：当路径出现错误的时候重定向404
+export const anyRoutes = {path:'*',redirect: '/404',hidden:true} 
+
+const createRouter = () =>
+  new Router({
+    // mode: 'history', // require service support
+    scrollBehavior: () => ({ y: 0 }),
+    routes: constantRoutes,
+  })
 
 const router = createRouter()
+// router.beforeEach((to, from, next) => {
+//   // to and from are both route objects. must call `next`.
+//   next({...to, replace: true})
+// })
 
 // Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
 export function resetRouter() {
