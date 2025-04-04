@@ -1,0 +1,43 @@
+:root {
+  --cp-primary: #16C2A3;
+  --bg-color: rgb(48, 65, 86);
+  --text-color: rgb(191, 203, 217);
+  --active-color: rgb(64, 158, 255);
+}
+@import './transition.scss';
+*,::before,::after{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+*:focus-visible{
+  outline: none;
+}
+html,body{
+  height: 100%;
+  // --animate-duration: 500ms;
+  outline: none;
+}
+#app {
+  height: 100%;
+}
+.p-20 {
+  padding: 20px;
+}
+.text-center {
+  text-align: center;
+}
+.text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+.text-bold {
+  font-weight: 700;
+}
+.group-button-right {
+  display: flex;
+  justify-content: end;
+}
+a {
+  text-decoration: none;
+}
