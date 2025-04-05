@@ -172,7 +172,7 @@ onMounted(() => {
           <el-table-column label="状态">
             <template #default="scope">
               <el-tag v-if="scope.row.status === 1">启用</el-tag>
-              <el-tag v-else type="error">禁用</el-tag>
+              <el-tag v-else type="danger">禁用</el-tag>
             </template>
           </el-table-column>
           <el-table-column prop="path" label="操作" fixed="right">

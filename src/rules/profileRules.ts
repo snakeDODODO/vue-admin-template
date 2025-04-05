@@ -1,7 +1,7 @@
 import { type FormRules } from 'element-plus/lib/components/index.js';
 
-export const userRules = reactive<FormRules>({
-  realname: [
+export const profileRules = reactive<FormRules>({
+  nickname: [
     { required: true, message: '请输入姓名', trigger: 'blur' },
     { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
   ],
@@ -11,15 +11,18 @@ export const userRules = reactive<FormRules>({
   ]
 });
 
-const checkconfirmPassword = (rule: any, value: string, callback: (error?: Error) => void) => {
-  if (value !== passwordForm.newPassword) {
-    callback(new Error('两次输入密码不一致'));
-  } else {
-    callback();
-  }
+// 创建验证函数工厂
+const createPasswordValidator = (formData: any) => {
+  return (rule: any, value: string, callback: (error?: Error) => void) => {
+    if (value !== formData.newPassword) {
+      callback(new Error('两次输入密码不一致'));
+    } else {
+      callback();
+    }
+  };
 };
 
-export const passwordRules = reactive<FormRules>({
+export const getPasswordRules = (formData: any) => reactive<FormRules>({
   oldPassword: [
     { required: true, message: '请输入原密码', trigger: 'blur' },
     { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
@@ -30,6 +33,6 @@ export const passwordRules = reactive<FormRules>({
   ],
   confirmPassword: [
     { required: true, message: '请再次输入新密码', trigger: 'blur' },
-    { validator: checkconfirmPassword, trigger: 'blur' }
+    { validator: createPasswordValidator(formData), trigger: 'blur' }
   ]
 });

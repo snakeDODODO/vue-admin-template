@@ -72,14 +72,3 @@ export const userRole = ref<FormRules>({
     }
   ]
 });
-
-export const profileRules = reactive<FormRules>({
-  nickname: [
-    { required: true, message: '请输入姓名', trigger: 'blur' },
-    { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
-  ],
-  phone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
-  ]
-});

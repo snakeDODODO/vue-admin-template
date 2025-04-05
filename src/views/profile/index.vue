@@ -6,14 +6,14 @@ export default {
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
-import { ElMessage, FormInstance, FormRules } from 'element-plus/lib/components/index.js';
+import { ElMessage, FormInstance } from 'element-plus/lib/components/index.js';
 import { User as UserIcon } from '@element-plus/icons-vue';
 import { requestChangeProfile } from '@/api/user';
 import { useUserStore } from '@/stores/modules/user';
 import { storeToRefs } from 'pinia';
 import { dayjs } from 'element-plus';
 import { User } from '@/types/user';
-import { profileRules } from '@/rules/userRule';
+import { getPasswordRules, profileRules } from '@/rules/profileRules';
 import { getAvatarUrl } from '@/utils/url';
 
 // 用户信息
@@ -37,30 +37,7 @@ const passwordForm = reactive({
   confirmPassword: ''
 });
 
-// 密码表单验证规则
-const passwordRules = reactive<FormRules>({
-  oldPassword: [
-    { required: true, message: '请输入原密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
-  ],
-  newPassword: [
-    { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
-  ],
-  confirmPassword: [
-    { required: true, message: '请再次输入新密码', trigger: 'blur' },
-    {
-      validator: (_rule: any, value: string, callback: (error?: Error) => void) => {
-        if (value !== passwordForm.newPassword) {
-          callback(new Error('两次输入密码不一致'));
-        } else {
-          callback();
-        }
-      },
-      trigger: 'blur'
-    }
-  ]
-});
+const rules = getPasswordRules(passwordForm);
 
 // 头像上传地址
 const uploadUrl = import.meta.env.VITE_API_URL + '/upload/avatar';
@@ -200,7 +177,7 @@ onMounted(() => {
               <img v-if="userForm.avatar" :src="getAvatarUrl(userForm.avatar)" class="avatar" />
               <el-icon v-else class="avatar-placeholder"><UserIcon /></el-icon>
             </div>
-            <el-upload class="avatar-uploader" :action="uploadUrl + '/' + `${userStore.user.id}`" name="avatar" auto-upload="false" :show-file-list="false" :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload" :headers="{ Authorization: userStore.userToken }">
+            <el-upload class="avatar-uploader" :action="uploadUrl + '/' + `${userStore.user.id}`" name="avatar" :auto-upload="false" :show-file-list="false" :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload" :headers="{ Authorization: userStore.userToken }">
               <el-button type="primary" size="small">上传头像</el-button>
             </el-upload>
           </div>
@@ -235,7 +212,7 @@ onMounted(() => {
             <div v-show="showPasswordForm">
               <el-divider content-position="left">修改密码</el-divider>
 
-              <el-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" label-width="100px" class="password-form">
+              <el-form ref="passwordFormRef" :model="passwordForm" :rules="rules" label-width="100px" class="password-form">
                 <el-form-item label="原密码" prop="oldPassword">
                   <el-input v-model="passwordForm.oldPassword" type="password" placeholder="请输入原密码" show-password />
                 </el-form-item>
