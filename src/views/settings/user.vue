@@ -33,7 +33,7 @@ let userIds = reactive<Array<string>>([]);
 const currentPage = ref(1);
 const pageSize = ref(10);
 const disabled = ref(false);
-let userTotal = ref();
+let userTotal = ref<number>(0);
 const selectForm = ref<ConsultUserListParams>({} as ConsultUserListParams);
 const loading = ref(true);
 let deleteButton = ref(true);
@@ -47,6 +47,7 @@ const currentUser = ref<User>({} as User);
 const imgFile = ref<string>('');
 const cropperRef = ref();
 const previewUrl = ref('');
+const layoutstring = 'prev, pager, next, jumper, sizes, total';
 const uploadLoading = ref(false);
 
 const defaultProps = {
@@ -383,180 +384,186 @@ onMounted(() => {
 
 <template>
   <div class="box-card">
-    <el-card class="card-left">
-      <el-input v-model="filterText" style="margin-bottom: 15px" placeholder="部门名称" :prefix-icon="Search" />
-      <el-tree style="max-width: 600px" :data="departmentList" :props="defaultProps" node-key="id" default-expand-all="true" @node-click="handleNodeClick" />
-    </el-card>
-    <div class="card-right">
-      <el-card class="card-select">
-        <el-form :inline="true" :model="selectForm" ref="selectFormRef" class="demo-form-inline">
-          <el-form-item label="用户名" prop="username" label-width="80">
-            <el-input v-model="selectForm.username" autocomplete="off" clearable class="select-input-width" />
-          </el-form-item>
-          <el-form-item label="姓名" prop="nickname" label-width="80">
-            <el-input v-model="selectForm.nickname" autocomplete="off" clearable class="select-input-width" />
-          </el-form-item>
-          <el-form-item label="手机号" prop="phone" label-width="80">
-            <el-input v-model="selectForm.phone" autocomplete="off" clearable class="select-input-width" />
-          </el-form-item>
-          <el-form-item label="所属部门" prop="department_id" label-width="80">
-            <el-tree-select v-model="selectForm.department_id" clearable class="select-input-width" :data="departmentList" :props="defaultProps" node-key="id" :render-after-expand="false" />
-          </el-form-item>
-          <el-form-item label="状态" prop="status" label-width="80">
-            <el-select v-model="selectForm.status" clearable placeholder="请选择状态" class="select-input-width">
-              <el-option label="启用" value="1" />
-              <el-option label="禁用" value="0" />
-            </el-select>
-          </el-form-item>
-        </el-form>
-        <div class="group-button-right">
-          <el-button :icon="Refresh" @click="resetForm(selectFormRef)">重置</el-button>
-          <el-button type="primary" :icon="Search" @click="selectUser(selectFormRef)">查询</el-button>
-        </div>
-      </el-card>
-      <el-card class="card-content">
-        <template #header>
-          <div class="card-header">
-            <span>用户管理</span>
-            <div class="button-group">
-              <el-button type="primary" :icon="Plus" @click="openDialog('添加用户')">添加用户</el-button>
-              <el-button type="danger" :icon="Delete" @click="delUserBySelect" :disabled="deleteButton">删除</el-button>
+    <el-row>
+      <el-col :span="3">
+        <el-card class="card-left">
+          <el-input v-model="filterText" style="margin-bottom: 15px" placeholder="部门名称" :prefix-icon="Search" />
+          <el-tree style="max-width: 600px" :data="departmentList" :props="defaultProps" node-key="id" :default-expand-all="true" @node-click="handleNodeClick" />
+        </el-card>
+      </el-col>
+      <el-col :span="21">
+        <div class="card-right">
+          <el-card class="card-select">
+            <el-form :inline="true" :model="selectForm" ref="selectFormRef" class="demo-form-inline">
+              <el-form-item label="用户名" prop="username" label-width="80">
+                <el-input v-model="selectForm.username" autocomplete="off" clearable />
+              </el-form-item>
+              <el-form-item label="姓名" prop="nickname" label-width="80">
+                <el-input v-model="selectForm.nickname" autocomplete="off" clearable />
+              </el-form-item>
+              <el-form-item label="手机号" prop="phone" label-width="80">
+                <el-input v-model="selectForm.phone" autocomplete="off" clearable />
+              </el-form-item>
+              <el-form-item label="所属部门" prop="department_id" label-width="80">
+                <el-tree-select v-model="selectForm.department_id" clearable :data="departmentList" :props="defaultProps" node-key="id" :render-after-expand="false" />
+              </el-form-item>
+              <el-form-item label="状态" prop="status" label-width="80">
+                <el-select v-model="selectForm.status" clearable placeholder="请选择状态">
+                  <el-option label="启用" value="1" />
+                  <el-option label="禁用" value="0" />
+                </el-select>
+              </el-form-item>
+            </el-form>
+            <div class="group-button-right">
+              <el-button :icon="Refresh" @click="resetForm(selectFormRef)">重置</el-button>
+              <el-button type="primary" :icon="Search" @click="selectUser(selectFormRef)">查询</el-button>
             </div>
-          </div>
-        </template>
-        <div class="text item">
-          <el-table :data="userList" v-loading="loading" max-height="480" style="width: 100%" @selection-change="selectChange" table-layout="auto" empty-text="没有数据">
-            <el-table-column type="selection" />
-            <el-table-column type="index" :index="indexMethod" label="序号" width="70" />
-            <el-table-column prop="username" label="账号" width="100" show-overflow-tooltip />
-            <el-table-column prop="nickname" label="姓名" width="100" />
-            <el-table-column prop="phone" label="手机号" width="130" />
-            <el-table-column prop="department.company_name" label="部门" width="100" />
-            <el-table-column label="创建时间">
-              <template #default="scope">
-                <div style="display: flex; align-items: center">
-                  <el-icon><timer /></el-icon>
-                  <span style="margin-left: 10px">{{ dayjs(`${scope.row.createtime}`).format('YYYY-MM-DD HH:mm:ss') }}</span>
-                </div>
-              </template>
-            </el-table-column>
-            <el-table-column label="角色" width="150">
-              <template #default="scope">
-                <el-space v-for="item in scope.row.roles">
-                  <el-tag>{{ item['role.name'] }}</el-tag>
-                </el-space>
-              </template>
-            </el-table-column>
-            <el-table-column label="是否启用">
-              <template #default="scope">
-                <el-switch v-model="scope.row.status" @change="statusChange(scope.row)" style="--el-switch-on-color: #13ce66" :active-value="1" :inactive-value="0" />
-              </template>
-            </el-table-column>
-            <el-table-column label="操作">
-              <template #default="scope">
-                <el-button size="small" type="primary" @click="openDialog('编辑用户', scope.row)">编辑</el-button>
-                <el-button size="small" type="danger" @click="delUser(scope.row)">删除</el-button>
-                <el-button size="small" plain :icon="Upload" @click="handleUpload(scope.row)" style="color: #909399"></el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
-        <el-pagination style="justify-content: end" v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 50, 100]" :disabled="disabled" background layout="prev, pager, next, jumper, sizes, total" :total="userTotal" />
-      </el-card>
-      <!-- 用户资料弹框 -->
-      <el-dialog v-model="dialogFormVisible" :title="dialogTitle" @close="closeDialog(userFormRef)">
-        <el-form :model="userForm" label-position="right" :inline="true" :rules="userRole" ref="userFormRef" hide-required-asterisk>
-          <el-form-item label="账号" prop="username" :label-width="formLabelWidth">
-            <el-input v-model="userForm.username" placeholder="请输入账号" :disabled="dialogTitle === '编辑用户' ? true : false" autocomplete="off" class="input-width" />
-          </el-form-item>
-          <el-form-item label="密码" prop="password" :label-width="formLabelWidth">
-            <el-input v-model="userForm.password" placeholder="请输入密码" type="password" autocomplete="off" class="input-width" />
-          </el-form-item>
-          <el-form-item label="姓名" prop="nickname" :label-width="formLabelWidth">
-            <el-input v-model="userForm.nickname" placeholder="请输入姓名" autocomplete="off" class="input-width" />
-          </el-form-item>
-          <el-form-item label="手机号" prop="phone" :label-width="formLabelWidth">
-            <el-input v-model="userForm.phone" placeholder="请输入手机号" autocomplete="off" class="input-width" />
-          </el-form-item>
-          <el-form-item label="角色" prop="roleIds" :label-width="formLabelWidth">
-            <el-select v-model="userForm.roleIds" class="input-width" multiple placeholder="请选择角色">
-              <el-option v-for="item in roleList" :label="item.name" :value="item.id" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="所属部门" prop="department_id" :label-width="formLabelWidth">
-            <el-tree-select v-model="userForm.department_id" class="input-width" placeholder="请选择所属部门" :data="departmentList" :props="defaultProps" node-key="id" :render-after-expand="false" />
-          </el-form-item>
-          <el-form-item label="状态" prop="status" :label-width="formLabelWidth">
-            <el-radio-group v-model="userForm.status">
-              <el-radio :label="userStatusType.enable">启用</el-radio>
-              <el-radio :label="userStatusType.disabled">禁用</el-radio>
-            </el-radio-group>
-          </el-form-item>
-        </el-form>
-        <template #footer>
-          <span class="dialog-footer">
-            <el-button @click="dialogFormVisible = false">取消</el-button>
-            <el-button type="primary" @click="submitForm(userFormRef)">提交</el-button>
-          </span>
-        </template>
-      </el-dialog>
-      <!-- 添加头像上传对话框 -->
-      <el-dialog v-model="uploadDialogVisible" title="上传头像" width="800px" @close="closeUploadDialog">
-        <el-row :gutter="20">
-          <el-col :span="14">
-            <div class="cropper-container">
-              <div class="cropper-title">裁剪区域</div>
-              <div v-if="!imgFile" class="upload-placeholder">
-                <input type="file" accept="image/jpeg,image/png" @change="handleFileChange" class="file-input" />
-                <el-button type="primary" plain>选择图片</el-button>
-                <div class="upload-tip">支持 JPG、PNG 格式，大小不超过 2MB</div>
-              </div>
-              <VueCropper
-                v-else
-                ref="cropperRef"
-                :img="imgFile"
-                :outputSize="1"
-                :outputType="'png'"
-                :info="true"
-                :full="true"
-                :canMove="false"
-                :canMoveBox="true"
-                :original="false"
-                :autoCrop="true"
-                :autoCropWidth="200"
-                :autoCropHeight="200"
-                :fixedBox="true"
-                :centerBox="true"
-                :infoTrue="true"
-                mode="contain"
-                @real-time="realTime"
-                @imgMoving="getCropData"
-                @cropMoving="getCropData"
-              />
-            </div>
-          </el-col>
-          <el-col :span="10">
-            <div class="preview-container">
-              <div class="preview-title">预览效果</div>
-              <div class="preview-box">
-                <img v-if="previewUrl" :src="previewUrl" class="preview-img" />
-                <div v-else class="preview-placeholder">
-                  <el-icon><Upload /></el-icon>
-                  <div>请先选择图片</div>
+          </el-card>
+          <el-card class="card-content">
+            <template #header>
+              <div class="card-header">
+                <span>用户管理</span>
+                <div class="button-group">
+                  <el-button type="primary" :icon="Plus" @click="openDialog('添加用户')">添加用户</el-button>
+                  <el-button type="danger" :icon="Delete" @click="delUserBySelect" :disabled="deleteButton">删除</el-button>
                 </div>
               </div>
-              <div class="preview-tip">头像将用于个人资料展示</div>
+            </template>
+            <div class="text item">
+              <el-table :data="userList" v-loading="loading" max-height="500px" table-layout="auto" style="width: 100%" @selection-change="selectChange" empty-text="没有数据">
+                <el-table-column type="selection" />
+                <el-table-column type="index" width="80px" :index="indexMethod" label="序号" />
+                <el-table-column prop="username" label="账号" show-overflow-tooltip />
+                <el-table-column prop="nickname" label="姓名" width="100" />
+                <el-table-column prop="phone" label="手机号" />
+                <el-table-column prop="department.company_name" label="部门" width="100" />
+                <el-table-column label="创建时间">
+                  <template #default="scope">
+                    <div style="display: flex; align-items: center">
+                      <el-icon><timer /></el-icon>
+                      <span style="margin-left: 10px">{{ dayjs(`${scope.row.createtime}`).format('YYYY-MM-DD HH:mm:ss') }}</span>
+                    </div>
+                  </template>
+                </el-table-column>
+                <el-table-column label="角色" width="120">
+                  <template #default="scope">
+                    <el-space v-for="item in scope.row.roles">
+                      <el-tag>{{ item['role.name'] }}</el-tag>
+                    </el-space>
+                  </template>
+                </el-table-column>
+                <el-table-column label="是否启用" width="100">
+                  <template #default="scope">
+                    <el-switch v-model="scope.row.status" @change="statusChange(scope.row)" style="--el-switch-on-color: #13ce66" :active-value="1" :inactive-value="0" />
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作">
+                  <template #default="scope">
+                    <el-button size="small" type="primary" @click="openDialog('编辑用户', scope.row)">编辑</el-button>
+                    <el-button size="small" type="danger" @click="delUser(scope.row)">删除</el-button>
+                    <el-button size="small" plain :icon="Upload" @click="handleUpload(scope.row)" style="color: #909399"></el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
             </div>
-          </el-col>
-        </el-row>
-        <template #footer>
-          <span class="dialog-footer">
-            <el-button @click="closeUploadDialog">取消</el-button>
-            <el-button type="primary" @click="uploadAvatar" :loading="uploadLoading">上传头像</el-button>
-          </span>
-        </template>
-      </el-dialog>
-    </div>
+            <el-pagination style="justify-content: end" v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 50, 100]" :disabled="disabled" background :layout="layoutstring" :total="userTotal" />
+          </el-card>
+          <!-- 用户资料弹框 -->
+          <el-dialog v-model="dialogFormVisible" :title="dialogTitle" @close="closeDialog(userFormRef)">
+            <el-form :model="userForm" label-position="right" :inline="true" :rules="userRole" ref="userFormRef" hide-required-asterisk>
+              <el-form-item label="账号" prop="username" :label-width="formLabelWidth">
+                <el-input v-model="userForm.username" placeholder="请输入账号" :disabled="dialogTitle === '编辑用户' ? true : false" autocomplete="off" class="input-width" />
+              </el-form-item>
+              <el-form-item label="密码" prop="password" :label-width="formLabelWidth">
+                <el-input v-model="userForm.password" placeholder="请输入密码" type="password" autocomplete="off" class="input-width" />
+              </el-form-item>
+              <el-form-item label="姓名" prop="nickname" :label-width="formLabelWidth">
+                <el-input v-model="userForm.nickname" placeholder="请输入姓名" autocomplete="off" class="input-width" />
+              </el-form-item>
+              <el-form-item label="手机号" prop="phone" :label-width="formLabelWidth">
+                <el-input v-model="userForm.phone" placeholder="请输入手机号" autocomplete="off" class="input-width" />
+              </el-form-item>
+              <el-form-item label="角色" prop="roleIds" :label-width="formLabelWidth">
+                <el-select v-model="userForm.roleIds" class="input-width" multiple placeholder="请选择角色">
+                  <el-option v-for="item in roleList" :label="item.name" :value="item.id" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="所属部门" prop="department_id" :label-width="formLabelWidth">
+                <el-tree-select v-model="userForm.department_id" class="input-width" placeholder="请选择所属部门" :data="departmentList" :props="defaultProps" node-key="id" :render-after-expand="false" />
+              </el-form-item>
+              <el-form-item label="状态" prop="status" :label-width="formLabelWidth">
+                <el-radio-group v-model="userForm.status">
+                  <el-radio :label="userStatusType.enable">启用</el-radio>
+                  <el-radio :label="userStatusType.disabled">禁用</el-radio>
+                </el-radio-group>
+              </el-form-item>
+            </el-form>
+            <template #footer>
+              <span class="dialog-footer">
+                <el-button @click="dialogFormVisible = false">取消</el-button>
+                <el-button type="primary" @click="submitForm(userFormRef)">提交</el-button>
+              </span>
+            </template>
+          </el-dialog>
+          <!-- 添加头像上传对话框 -->
+          <el-dialog v-model="uploadDialogVisible" title="上传头像" width="800px" @close="closeUploadDialog">
+            <el-row :gutter="20">
+              <el-col :span="14">
+                <div class="cropper-container">
+                  <div class="cropper-title">裁剪区域</div>
+                  <div v-if="!imgFile" class="upload-placeholder">
+                    <input type="file" accept="image/jpeg,image/png" @change="handleFileChange" class="file-input" />
+                    <el-button type="primary" plain>选择图片</el-button>
+                    <div class="upload-tip">支持 JPG、PNG 格式，大小不超过 2MB</div>
+                  </div>
+                  <VueCropper
+                    v-else
+                    ref="cropperRef"
+                    :img="imgFile"
+                    :outputSize="1"
+                    :outputType="'png'"
+                    :info="true"
+                    :full="true"
+                    :canMove="false"
+                    :canMoveBox="true"
+                    :original="false"
+                    :autoCrop="true"
+                    :autoCropWidth="200"
+                    :autoCropHeight="200"
+                    :fixedBox="true"
+                    :centerBox="true"
+                    :infoTrue="true"
+                    mode="contain"
+                    @real-time="realTime"
+                    @imgMoving="getCropData"
+                    @cropMoving="getCropData"
+                  />
+                </div>
+              </el-col>
+              <el-col :span="10">
+                <div class="preview-container">
+                  <div class="preview-title">预览效果</div>
+                  <div class="preview-box">
+                    <img v-if="previewUrl" :src="previewUrl" class="preview-img" />
+                    <div v-else class="preview-placeholder">
+                      <el-icon><Upload /></el-icon>
+                      <div>请先选择图片</div>
+                    </div>
+                  </div>
+                  <div class="preview-tip">头像将用于个人资料展示</div>
+                </div>
+              </el-col>
+            </el-row>
+            <template #footer>
+              <span class="dialog-footer">
+                <el-button @click="closeUploadDialog">取消</el-button>
+                <el-button type="primary" @click="uploadAvatar" :loading="uploadLoading">上传头像</el-button>
+              </span>
+            </template>
+          </el-dialog>
+        </div>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
@@ -573,19 +580,18 @@ onMounted(() => {
   margin-bottom: 18px;
 }
 .box-card {
+  display: flex;
   width: auto;
   height: 100%;
-  display: flex;
-  flex-direction: row;
 }
 .card-left {
-  width: 220px;
   margin-right: 5px;
+  height: 100%;
 }
 .card-right {
   display: flex;
-  flex: 1;
   flex-direction: column;
+  height: 100%;
 }
 .card-select {
   margin-bottom: 5px;
@@ -597,10 +603,6 @@ onMounted(() => {
 .input-width {
   width: 235px;
 }
-.select-input-width {
-  width: 225px;
-}
-
 .demo-form-inline .el-form-item {
   margin-right: 0px;
 }

@@ -287,7 +287,7 @@ const notifications1 = ref([
           </el-badge>
           <template #dropdown>
             <el-dropdown-menu class="notice-dropdown" style="width: 330px">
-              <el-tabs v-model="activeName" class="notice-tabs" stretch="true">
+              <el-tabs v-model="activeName" class="notice-tabs" :stretch="true">
                 <el-tab-pane label="通知" name="first">
                   <div class="noteiceList">
                     <template v-if="messageOfStartList.length > 0">
@@ -342,7 +342,7 @@ const notifications1 = ref([
                     <template v-if="notifications1.length > 0">
                       <div v-for="item in notifications1" :key="item.id" class="notice-item">
                         <div class="notice-content">
-                          <el-avatar :icon="UserFilled" size="30" class="notice-content-avatar" />
+                          <el-avatar :icon="UserFilled" :size="30" class="notice-content-avatar" />
                           <div class="notice-container">
                             <div class="notice-title">
                               <span>{{ item.title }}</span>
